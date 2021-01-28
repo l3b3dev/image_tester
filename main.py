@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
     ax2.grid(False)
     ax2.axis('off')
-    ax1.set_title('Predicted')
+    ax2.set_title('Predicted')
     ax2.imshow(asdf.detach().numpy(), cmap='gray')
 
     plt.tight_layout()
