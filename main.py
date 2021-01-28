@@ -1,20 +1,18 @@
 import os
 
 import torch
-from torch.autograd import Variable
 from torchvision import datasets, models, transforms
 import torch.nn as nn
-import numpy as np
-from torch.optim import SGD
+from torch.optim import SGD, Adam
 
 import matplotlib.pyplot as plt
 
 
 class Perceptron(nn.Module):
-    def __init__(self, net_inputs, net_output):
+    def __init__(self, net_inputs, net_output, activation):
         super(Perceptron, self).__init__()
         self.fc1 = nn.Linear(net_inputs, net_output)
-        self.act = nn.Sigmoid()
+        self.act = activation
 
     def forward(self, x):
         x = self.fc1(x)
@@ -59,20 +57,23 @@ if __name__ == '__main__':
         plot_cell.axis('off')
         plot_cell.set_title(image_datasets['train'].classes[Y_train[i].item()])
         plot_cell.imshow(X_train[i][0], cmap='gray')
-        # plot_cell.imshow( X_train_f[i].reshape(16,16), cmap='gray')
     plt.tight_layout()
     plt.show()
 
-    # # train model 1
-    # model1 = Perceptron(16*16,1)
+    # train model 1
+    # model1 = Perceptron(16 * 16, 1, nn.LeakyReLU())
     # loss_func = nn.MSELoss()
     #
     # opt = SGD(model1.parameters(), lr=0.001)
     #
     # loss_history = []
-    # for epoch in range(100):
+    # for epoch in range(10000):
     #     opt.zero_grad()
-    #     loss_value = loss_func(model1(X_train_f), torch.FloatTensor( [float(image_datasets['train'].classes[lookup]) for lookup in Y_train]))
+    #     pred = model1(X_train_f)
+    #     pred = pred.squeeze(1)
+    #
+    #     loss_value = loss_func(pred, torch.FloatTensor(
+    #         [float(image_datasets['train'].classes[lookup]) for lookup in Y_train]))
     #     loss_value.backward()
     #     opt.step()
     #     loss_history.append(loss_value)
@@ -82,35 +83,12 @@ if __name__ == '__main__':
     # plt.xlabel('epochs')
     # plt.ylabel('loss value')
     # plt.show()
-    #
-    #
-    # X_test = X_train_f[3]
-    # model1.eval()
-    # y_pred = model1(X_test)
-    #
-    # # plot predicted data with
-    # R, C = 1, 2
-    # fig, (ax1,ax2) = plt.subplots(R, C)
-    # fig.suptitle('Predicted Data')
-    # #for i, plot_cell in enumerate(ax):
-    # ax1.grid(False)
-    # ax1.axis('off')
-    # ax1.set_title('Actual')
-    # ax1.imshow(X_train[0][0], cmap='gray')
-    #
-    # ax2.grid(False)
-    # ax2.axis('off')
-    # ax1.set_title('Predicted')
-    # ax2.imshow(X_train[0][0], cmap='gray')
-    #
-    # plt.tight_layout()
-    # plt.show()
 
     # train model 2
-    # model2 = Perceptron(16 * 16, 20)
+    # model2 = Perceptron(16 * 16, 20, nn.Sigmoid())
     # loss_func = nn.MSELoss()
     #
-    # opt = SGD(model2.parameters(), lr=0.001)
+    # opt = Adam(model2.parameters(), lr=0.001)
     # mapped_lbls = [int(image_datasets['train'].classes[lookup]) for lookup in Y_train]
     #
     # lbls_list = torch.zeros(10, 20)
@@ -118,9 +96,11 @@ if __name__ == '__main__':
     #     lbls_list[i][indx-1] = 1
     #
     # loss_history = []
-    # for epoch in range(100):
+    # for epoch in range(10000):
     #     opt.zero_grad()
-    #     loss_value = loss_func(model2(X_train_f), lbls_list)
+    #     pred = model2(X_train_f)
+    #     pred = pred.squeeze(1)
+    #     loss_value = loss_func(pred, lbls_list)
     #     loss_value.backward()
     #     opt.step()
     #     loss_history.append(loss_value)
@@ -137,34 +117,16 @@ if __name__ == '__main__':
     # y_pred = torch.argmax(model2(X_test))
     # p_val = y_pred.item()+1
 
-    # # plot predicted data with
-    # R, C = 1, 2
-    # fig, (ax1, ax2) = plt.subplots(R, C)
-    # fig.suptitle('Predicted Data')
-    # # for i, plot_cell in enumerate(ax):
-    # ax1.grid(False)
-    # ax1.axis('off')
-    # ax1.set_title('Actual')
-    # ax1.imshow(X_train[0][0], cmap='gray')
-    #
-    # ax2.grid(False)
-    # ax2.axis('off')
-    # ax1.set_title('Predicted')
-    # ax2.imshow(X_train[0][0], cmap='gray')
-    #
-    # plt.tight_layout()
-    # plt.show()
-    #
-
-    model3 = Perceptron(16 * 16, 16 * 16)
+    model3 = Perceptron(16 * 16, 16 * 16, nn.Sigmoid())
     loss_func = nn.MSELoss()
 
-    opt = SGD(model3.parameters(), lr=0.001)
+    opt = Adam(model3.parameters(), lr=0.001)
 
     loss_history = []
-    for epoch in range(100):
+    for epoch in range(10000):
         opt.zero_grad()
-        loss_value = loss_func(model3(X_train_f), X_train_f)
+        pred = model3(X_train_f)
+        loss_value = loss_func(pred, X_train_f)
         loss_value.backward()
         opt.step()
         loss_history.append(loss_value)
@@ -178,8 +140,7 @@ if __name__ == '__main__':
     X_test = X_train_f[0]
     model3.eval()
     Y_test_pred = model3(X_test)
-    ff = X_train_f[0]
-    asdf = Y_test_pred.reshape(16, 16)
+    Y_pred = Y_test_pred.reshape(16, 16)
 
     # # plot predicted data with
     R, C = 1, 2
@@ -194,8 +155,7 @@ if __name__ == '__main__':
     ax2.grid(False)
     ax2.axis('off')
     ax2.set_title('Predicted')
-    ax2.imshow(asdf.detach().numpy(), cmap='gray')
+    ax2.imshow(Y_pred.detach().numpy(), cmap='gray')
 
     plt.tight_layout()
     plt.show()
-
