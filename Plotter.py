@@ -25,6 +25,14 @@ class Plotter:
         plt.show()
 
     @staticmethod
+    def plot_stats(fh, ffa):
+        plt.plot(ffa, fh, 'o')
+        plt.title('Fh vs Ffa')
+        plt.xlabel('Ffa')
+        plt.ylabel('Fh')
+        plt.show()
+
+    @staticmethod
     def plot_sample(x, y):
         # # plot predicted data with
         fig, (ax1, ax2) = plt.subplots(1, 2)
