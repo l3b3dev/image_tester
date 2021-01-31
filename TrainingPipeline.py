@@ -7,6 +7,7 @@ from torch.optim import SGD, Adam
 from torchvision import datasets, models, transforms
 
 from Perceptron import Perceptron
+from Plotter import Plotter
 
 
 class TrainingPipeline:
@@ -23,7 +24,7 @@ class TrainingPipeline:
 
         return self.optimizer
 
-    # Will try 3 approaches as listed in Step 2
+    # Will try 03 approaches as listed in Step 02
     def get_model(self, approach):
         model = self.models[approach - 1]
         loss_fn = self.loss[approach - 1]
@@ -67,14 +68,15 @@ class TrainingPipeline:
                           ['train', 'val']}
         # Create training and validation dataloaders
         image_dataloaders = {
-            x: torch.utils.data.DataLoader(image_datasets[x], batch_size=image_datasets[x].__len__(), shuffle=True)
+            x: torch.utils.data.DataLoader(image_datasets[x], batch_size=image_datasets[x].__len__(),
+                                           shuffle=True if x == 'train' else False)
             for x
             in
             ['train', 'val']}
 
         return image_datasets, image_dataloaders
 
-    # get labels for Approach 2
+    # get labels for Approach 02
     def get_lbl_tensor(self, image_datasets, y, kind='train'):
         mapped_lbls = [int(image_datasets[kind].classes[lookup]) for lookup in y]
 
@@ -91,3 +93,33 @@ class TrainingPipeline:
         X_train_f = torch.flatten(X_train[:, 0], start_dim=1)
 
         return X_train, Y_train, X_train_f
+
+    def predict(self, approach_number, model, x, x_test):
+        y_pred = model(x)
+
+        if approach_number == 1:
+            return x_test[int(round(y_pred.item())) - 1]
+        elif approach_number == 2:
+            # The index of the output pattern is found by locating the maximum value of y,
+            # then finding the indx j of that value
+            y = torch.argmax(y_pred)
+            return x_test[y.item()]
+
+        elif approach_number == 3:
+            return y_pred
+
+    def run_approach(self, approach_number, x_train_f, x_train, x_test, y_train, image_datasets):
+        self.init_optimizer(approach_number)
+        # setup labeling indexed list
+        labels = [torch.FloatTensor([float(image_datasets['train'].classes[lookup]) for lookup in y_train]),
+                  self.get_lbl_tensor(image_datasets, y_train),
+                  x_train_f
+                  ]
+        model, loss_func, opt = self.get_model(approach_number)
+        loss_history = self.train(x_train_f, labels[approach_number - 1],
+                                  model, opt, loss_func, approach_number)
+        Plotter.plot_losses(loss_history)
+
+        y_test_pred = self.predict(approach_number, model, x_train_f[0], x_test)
+        y_pred = y_test_pred.reshape(16, 16)
+        Plotter.plot_sample(x_train[0][0], y_pred)
