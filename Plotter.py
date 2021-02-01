@@ -5,7 +5,7 @@ class Plotter:
     @staticmethod
     def plot_data(image_datasets, x_train, y_train, kind='train'):
         # plot train data with labels
-        R, C = 1, 10
+        R, C = 1, x_train.size(0)
         fig, ax = plt.subplots(R, C)
         fig.suptitle('Training Data with corresponding labels')
         for i, plot_cell in enumerate(ax):

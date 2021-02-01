@@ -6,6 +6,7 @@ from torch import nn
 from torch.optim import SGD, Adam
 from torchvision import datasets, models, transforms
 
+from GaussianNoiseTransform import GaussianNoiseTransform
 from Perceptron import Perceptron
 from Plotter import Plotter
 
@@ -53,13 +54,21 @@ class TrainingPipeline:
         return val_loss.item()
 
     # Create training and validation datasets and initialize data loaders
-    def initialize_data(self, data_dir):
+    def initialize_data(self, data_dir, sdev=0.):
         data_transforms = {
             'train': transforms.Compose([
                 transforms.ToTensor()
             ]),
             'val': transforms.Compose([
                 transforms.ToTensor()
+            ]),
+        } if sdev == 0. else {
+            'train': transforms.Compose([
+                transforms.ToTensor()
+            ]),
+            'val': transforms.Compose([
+                transforms.ToTensor(),
+                GaussianNoiseTransform(std=sdev, k=25)
             ]),
         }
 

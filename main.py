@@ -1,4 +1,6 @@
 import torch
+
+from GaussianNoiseTransform import GaussianNoiseTransform
 from Plotter import Plotter
 from TrainingPipeline import TrainingPipeline
 
@@ -26,16 +28,23 @@ if __name__ == '__main__':
     # torch.save(model3.state_dict(), "models/model3.pth")
 
     # decide which model is better
-    models = pipeline.load_pretrained("models")
-    #pipeline.render_test_data(models, X_test_f)
+    # models = pipeline.load_pretrained("models")
+    # #pipeline.render_test_data(models, X_test_f)
+    #
+    # # Model3 seems to be the best
+    # approach = 3
+    # model = models[approach-1]
+    #
+    # #calculate statistics
+    # Fh, Ffa = pipeline.compute_statistics(model,X_test_f)
+    #
+    # Plotter.plot_stats(Fh, Ffa)
 
-    # Model3 seems to be the best
-    approach = 3
-    model = models[approach-1]
+    # corrupt all images with Gaussian noise
+    image_datasets, loaders = pipeline.initialize_data(data_dir, sdev=0.01)
+    X_test, Y_test, X_test_f = pipeline.load_all_data(loaders, kind='val')
 
-    #calculate statistics
-    Fh, Ffa = pipeline.compute_statistics(model,X_test_f)
-
-    Plotter.plot_stats(Fh, Ffa)
+    # plot train data with labels
+    Plotter.plot_data(image_datasets, X_test, Y_test, kind='val')
 
 
