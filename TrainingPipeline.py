@@ -12,7 +12,7 @@ from Plotter import Plotter
 
 class TrainingPipeline:
     def __init__(self):
-        self.models = [Perceptron(16 * 16, 1, nn.LeakyReLU()), Perceptron(16 * 16, 20, nn.Sigmoid()),
+        self.models = [Perceptron(16 * 16, 1, nn.LeakyReLU()), Perceptron(16 * 16, 20, nn.Threshold(0.8, 0)),
                        Perceptron(16 * 16, 16 * 16, nn.Sigmoid())]
         self.loss = [nn.MSELoss(), nn.MSELoss(), nn.MSELoss()]
         self.optimizer = self.init_optimizer(3)
@@ -144,21 +144,21 @@ class TrainingPipeline:
                 Plotter.plot_sample(x_test.reshape(16, 16), y_pred.reshape(16, 16))
 
     @torch.no_grad()
-    def get_fraction_of_hits(self, x_test, y_pred):
+    def get_fraction_statistics(self, x_test, y_pred):
         a = torch.round(x_test)
         b = torch.round(y_pred)
-        ones = (a == 1).sum()
-        z = torch.logical_and(a, b).sum()
-        return z.item() / ones.item()
+        diff = abs(a - b)
 
-    @torch.no_grad()
-    def get_fraction_of_false_alarms(self, x_test, y_pred):
-        a = torch.round(x_test)
-        b = torch.round(y_pred)
+        blacks = a == 0
+        whites = a == 1
 
-        zeros = (a == 0).sum()
-        z = ((b - a) == 1).sum()
-        return z.item() / zeros.item()
+        z = torch.logical_and(diff==0, blacks).sum()
+        fh = z.item() / blacks.sum().item()
+
+        z = torch.logical_and(diff==1, whites).sum()
+        ffa = z.item() / whites.sum().item()
+
+        return fh, ffa
 
     def compute_statistics(self, model, x, approach=3):
         Fh = []
@@ -167,8 +167,8 @@ class TrainingPipeline:
             # apply the model
             y_pred = self.predict(approach, model, x_test, x)
 
-            fh = self.get_fraction_of_hits(x_test, y_pred)
-            ffa = self.get_fraction_of_false_alarms(x_test, y_pred)
+            fh, ffa = self.get_fraction_statistics(torch.FloatTensor([0., 1., 1., 0., 1.]), torch.FloatTensor([0., 0., 1., 1., 1.]))
+            fh, ffa = self.get_fraction_statistics(x_test, y_pred)
 
             Fh.append(fh)
             Ffa.append(ffa)

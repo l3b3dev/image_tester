@@ -26,7 +26,7 @@ class Plotter:
 
     @staticmethod
     def plot_stats(fh, ffa):
-        plt.plot(ffa, fh, 'o')
+        plt.scatter(ffa, fh, facecolors='none', edgecolors='r')
         plt.title('Fh vs Ffa')
         plt.xlabel('Ffa')
         plt.ylabel('Fh')
