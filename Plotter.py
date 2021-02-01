@@ -61,7 +61,7 @@ class Plotter:
         for xe, ye in zip(x,y):
             plt.scatter([xe]*len(ye), ye, marker='.')
         for xe, ze in zip(x, z):
-            plt.scatter([xe] * len(ze), ye, marker='+')
+            plt.scatter([xe] * len(ze), ze, marker='+')
 
         plt.xticks(x)
         plt.axes().set_xscale('log')

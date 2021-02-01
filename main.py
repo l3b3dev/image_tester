@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     # decide which model is better
     models = [model1, model2, model3]
-    pipeline.render_test_data(models, X_test_f)
+    #pipeline.render_test_data(models, X_test_f)
     #
     # Model3 seems to be the best
     approach = 3
