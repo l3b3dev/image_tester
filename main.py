@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # Plotter.plot_stats(Fh, Ffa)
 
     # corrupt all images with Gaussian noise
-    image_datasets, loaders = pipeline.initialize_data(data_dir, sdev=0.05)
+    image_datasets, loaders = pipeline.initialize_data(data_dir, sdev=0.01)
     X_test, Y_test, X_test_f = pipeline.load_all_data(loaders, kind='val')
 
     # plot train data with labels
