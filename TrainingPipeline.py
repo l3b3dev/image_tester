@@ -6,6 +6,7 @@ from torch import nn
 from torch.optim import SGD, Adam
 from torchvision import datasets, transforms
 
+
 from GaussianNoiseTransform import GaussianNoiseTransform
 from Perceptron import Perceptron
 from Plotter import Plotter

@@ -1,4 +1,5 @@
 import torch
+import pandas as pd
 
 from GaussianNoiseTransform import GaussianNoiseTransform
 from Plotter import Plotter
@@ -43,6 +44,7 @@ if __name__ == '__main__':
     # corrupt all images with Gaussian noise
     sdevs = [0., 0.001, 0.002, 0.003, 0.005, 0.01, 0.02, 0.03, 0.05, 0.1]
     stats = pipeline.get_noise_stats(data_dir, model, sdevs)
+    pd.DataFrame.from_dict(data=stats).to_csv('data.csv', header=False)
 
     Plotter.plot_noise_stats(stats)
 
