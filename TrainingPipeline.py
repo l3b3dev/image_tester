@@ -4,7 +4,7 @@ import os
 import torch
 from torch import nn
 from torch.optim import SGD, Adam
-from torchvision import datasets, models, transforms
+from torchvision import datasets, transforms
 
 from GaussianNoiseTransform import GaussianNoiseTransform
 from Perceptron import Perceptron
@@ -13,7 +13,7 @@ from Plotter import Plotter
 
 class TrainingPipeline:
     def __init__(self):
-        self.models = [Perceptron(16 * 16, 1, nn.LeakyReLU()), Perceptron(16 * 16, 20, nn.Threshold(0.8, 0)),
+        self.models = [Perceptron(16 * 16, 1, nn.LeakyReLU()), Perceptron(16 * 16, 20, nn.Sigmoid()),
                        Perceptron(16 * 16, 16 * 16, nn.Sigmoid())]
         self.loss = [nn.MSELoss(), nn.MSELoss(), nn.MSELoss()]
         self.optimizer = self.init_optimizer(3)
@@ -126,7 +126,7 @@ class TrainingPipeline:
                   ]
         model, loss_func, opt = self.get_model(approach_number)
         loss_history = self.train(x_train_f, labels[approach_number - 1],
-                                  model, opt, loss_func, approach_number, 100000 if approach_number == 3 else 10000)
+                                  model, opt, loss_func, approach_number, 8000 if approach_number == 3 else 400)
         Plotter.plot_losses(loss_history)
 
         y_test_pred = self.predict(approach_number, model, x_train_f[0], x_test)
@@ -150,7 +150,8 @@ class TrainingPipeline:
             for x_test in x:
                 # apply the model
                 y_pred = self.predict(i + 1, model, x_test, x)
-                Plotter.plot_sample(x_test.reshape(16, 16), y_pred.reshape(16, 16))
+                if i == 2:
+                    Plotter.plot_sample(x_test.reshape(16, 16), y_pred.reshape(16, 16))
 
     @torch.no_grad()
     def get_fraction_statistics(self, x_test, y_pred):
@@ -161,10 +162,10 @@ class TrainingPipeline:
         blacks = a == 0
         whites = a == 1
 
-        z = torch.logical_and(diff==0, blacks).sum()
+        z = torch.logical_and(diff == 0, blacks).sum()
         fh = z.item() / blacks.sum().item()
 
-        z = torch.logical_and(diff==1, whites).sum()
+        z = torch.logical_and(diff == 1, whites).sum()
         ffa = z.item() / whites.sum().item()
 
         return fh, ffa
@@ -176,10 +177,24 @@ class TrainingPipeline:
             # apply the model
             y_pred = self.predict(approach, model, x_test, x)
 
-            fh, ffa = self.get_fraction_statistics(torch.FloatTensor([0., 1., 1., 0., 1.]), torch.FloatTensor([0., 0., 1., 1., 1.]))
             fh, ffa = self.get_fraction_statistics(x_test, y_pred)
 
             Fh.append(fh)
             Ffa.append(ffa)
 
         return Fh, Ffa
+
+    def get_noise_stats(self, data_dir, model, sdevs, render=False):
+        stats = {}
+        for sd in sdevs:
+            image_datasets, loaders = self.initialize_data(data_dir, sdev=sd)
+            X_test, Y_test, X_test_f = self.load_all_data(loaders, kind='val')
+
+            # plot train data with labels
+            if render:
+                Plotter.plot_data(image_datasets, X_test, Y_test, kind='val')
+
+            # calculate statistics
+            stats[sd] = self.compute_statistics(model, X_test_f)
+
+        return stats

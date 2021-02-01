@@ -49,3 +49,25 @@ class Plotter:
 
         plt.tight_layout()
         plt.show()
+
+    @staticmethod
+    def plot_noise_stats(stats):
+        x,y,z = [], [], []
+        for sdev, (Fh, Ffa) in stats.items():
+            x.append(sdev)
+            y.append(Fh)
+            z.append(Ffa)
+
+        for xe, ye in zip(x,y):
+            plt.scatter([xe]*len(ye), ye, marker='.')
+        for xe, ze in zip(x, z):
+            plt.scatter([xe] * len(ze), ye, marker='+')
+
+        plt.xticks(x)
+        plt.axes().set_xscale('log')
+        plt.axes().set_xticklabels(x)
+        #plt.legend(labels=x)
+        plt.title('Graph of Fh and Ffa for noise-corrupted Alphanumeric Imagery \n (16x16 pixels) for Autoassociative Single-Layer Perceptron')
+        plt.xlabel('Gaussian Noise Level (stdev, at 10 pct xsecn)')
+        plt.ylabel('Fh and Ffa')
+        plt.show()
